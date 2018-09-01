@@ -6,9 +6,9 @@ BRANCH=${1:-master}
 
 PATH=/home/ubuntu/local/bin:$PATH
 
-cd /home/isucon/isubata/webapp/ruby
+cd /home/isucon/src
 git fetch origin
 git reset --hard origin/$BRANCH
-gem install bundler
 bundle check || bundle install
+ln -sf /home/isucon/src/ruby /home/isucon/isubata/webapp/ruby
 sudo systemctl restart isubata.ruby.service
