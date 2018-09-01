@@ -45,6 +45,8 @@ class App < Sinatra::Base
     redis.flushdb
     redis.set(message_id_key, 0)
 
+    import_message_to_redis
+
     #export_icons_to_public_dir
 
     204
@@ -427,6 +429,11 @@ SQL
 
   def message_id_key
     "message:id"
+  end
+
+  def import_message_to_redis
+    messages = db.query('SELECT id, channel_id, user_id, content, created_at FROM message ORDER BY id ASC')
+    messages.each { |msg| redis_add_message(msg['channel_id'], msg['user_id'], msg['content'], created_at: msg['created_at']) }
   end
 
   def save_haveread(user_id, channel_id, message_id)
