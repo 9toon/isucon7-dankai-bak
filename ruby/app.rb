@@ -1,3 +1,4 @@
+require 'newrelic_rpm'
 require 'digest/sha1'
 require 'mysql2'
 require 'sinatra/base'
