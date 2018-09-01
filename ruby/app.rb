@@ -1,6 +1,7 @@
 require 'digest/sha1'
 require 'mysql2'
 require 'sinatra/base'
+require "redis"
 
 class App < Sinatra::Base
   configure do
@@ -40,6 +41,8 @@ class App < Sinatra::Base
     db.query("DELETE FROM channel WHERE id > 10")
     db.query("DELETE FROM message WHERE id > 10000")
     db.query("DELETE FROM haveread")
+
+    redis.flushdb
 
     #export_icons_to_public_dir
 
@@ -149,12 +152,7 @@ SQL
     response.reverse!
 
     max_message_id = rows.empty? ? 0 : rows.first['id']
-    statement = db.prepare([
-      'INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at) ',
-      'VALUES (?, ?, ?, NOW(), NOW()) ',
-      'ON DUPLICATE KEY UPDATE message_id = ?, updated_at = NOW()',
-    ].join)
-    statement.execute(user_id, channel_id, max_message_id, max_message_id)
+    save_haveread(user_id, channel_id, max_message_id)
 
     content_type :json
     response.to_json
@@ -173,17 +171,15 @@ SQL
 
     res = []
     channel_ids.each do |channel_id|
-      statement = db.prepare('SELECT * FROM haveread WHERE user_id = ? AND channel_id = ?')
-      row = statement.execute(user_id, channel_id).first
-      statement.close
+      message_id = fetch_haveread(user_id, channel_id)
       r = {}
       r['channel_id'] = channel_id
-      r['unread'] = if row.nil?
+      r['unread'] = if message_id.nil?
         statement = db.prepare('SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?')
         statement.execute(channel_id).first['cnt']
       else
         statement = db.prepare('SELECT COUNT(*) as cnt FROM message WHERE channel_id = ? AND ? < id')
-        statement.execute(channel_id, row['message_id']).first['cnt']
+        statement.execute(channel_id, message_id).first['cnt']
       end
       statement.close
       res << r
@@ -350,6 +346,15 @@ SQL
     @db_client
   end
 
+  def redis
+    return @redis if defined?(@redis)
+
+    @redis = Redis.new(
+      url: ENV.fetch('ISUBATA_REDIS_URL') { 'redis://localhost:6379/10' },
+    )
+    @redis
+  end
+
   def db_get_user(user_id)
     statement = db.prepare('SELECT * FROM user WHERE id = ?')
     user = statement.execute(user_id).first
@@ -398,6 +403,18 @@ SQL
       return 'image/gif'
     end
     ''
+  end
+
+  def save_haveread(user_id, channel_id, message_id)
+    redis.set(haveread_key(user_id, channel_id), message_id)
+  end
+
+  def fetch_haveread(user_id, channel_id)
+    redis.get(haveread_key(user_id, channel_id))
+  end
+
+  def haveread_key(user_id, channel_id)
+    "haveread:uid:#{user_id}:cid:#{channel_id}"
   end
 
   def export_icons_to_public_dir

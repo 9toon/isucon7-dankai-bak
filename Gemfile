@@ -7,3 +7,5 @@ git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
 gem 'itamae', require: false
 gem 'mustermann'
 gem 'table_print'
+
+gem 'redis'
