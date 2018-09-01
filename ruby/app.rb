@@ -359,14 +359,6 @@ class App < Sinatra::Base
     user
   end
 
-  def db_add_message(channel_id, user_id, content)
-    statement = db.prepare('INSERT INTO message (channel_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())')
-    messages = statement.execute(channel_id, user_id, content)
-    statement.close
-    messages
-  end
-
-
   def register(user, password)
     salt = 'a'
     pass_digest = Digest::SHA1.hexdigest(salt + password)
