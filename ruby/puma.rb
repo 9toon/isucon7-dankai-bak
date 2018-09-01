@@ -108,9 +108,9 @@ threads 32, 32
 # to the number of available cores.
 #
 # The default is "0".
-#
-# workers 2
-#
+
+workers 2
+
 # Code to run immediately before the master starts workers.
 #
 # before_fork do
