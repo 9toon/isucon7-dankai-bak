@@ -131,7 +131,11 @@ class App < Sinatra::Base
     rows = fetch_messages(channel_id, message_id: last_message_id, per_page: 100)
 
     user_ids = rows.map { |r| r['user_id'] }
-    u_rows = db.query("SELECT user.id, user.name, user.display_name, user.avatar_icon FROM user WHERE user.id IN (#{user_ids.join(', ')})").to_a
+    if !user_ids.empty?
+      u_rows = db.query("SELECT user.id, user.name, user.display_name, user.avatar_icon FROM user WHERE user.id IN (#{user_ids.join(', ')})").to_a
+    else
+      u_rows = []
+    end
     users = u_rows.each.with_object({}) do |user, hsh|
       hsh[user['id']] = {
         name: user['name'],
