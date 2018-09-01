@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -ex
+
+BRANCH=${1:-master}
+ssh isucon@118.27.33.39 /home/isucon/isubata/webapp/ruby/bin/deploy_remote $BRANCH

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -ex
+
+BRANCH=${1:-master}
+
+PATH=/home/ubuntu/local/bin:$PATH
+
+cd /home/isucon/isubata/webapp/ruby
+git fetch origin
+git reset --hard origin/$BRANCH
+gem install bundler
+bundle check || bundle install
+sudo systemctl restart isubata.ruby.service
