@@ -178,13 +178,10 @@ SQL
       r = {}
       r['channel_id'] = channel_id
       r['unread'] = if message_id.nil?
-        statement = db.prepare('SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?')
-        statement.execute(channel_id).first['cnt']
+        count_messages(channel_id)
       else
-        statement = db.prepare('SELECT COUNT(*) as cnt FROM message WHERE channel_id = ? AND ? < id')
-        statement.execute(channel_id, message_id).first['cnt']
+        count_messages(channel_id, message_id: message_id)
       end
-      statement.close
       res << r
     end
 
@@ -209,25 +206,21 @@ SQL
     @page = @page.to_i
 
     n = 20
-    statement = db.prepare('SELECT * FROM message WHERE channel_id = ? ORDER BY id DESC LIMIT ? OFFSET ?')
-    rows = statement.execute(@channel_id, n, (@page - 1) * n).to_a
-    statement.close
+    rows = fetch_messages(@channel_id, page: @page, per_page: n)
     @messages = []
     rows.each do |row|
       r = {}
       r['id'] = row['id']
       statement = db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id = ?')
       r['user'] = statement.execute(row['user_id']).first
-      r['date'] = row['created_at'].strftime("%Y/%m/%d %H:%M:%S")
+      r['date'] = Time.parse(row['created_at']).strftime("%Y/%m/%d %H:%M:%S")
       r['content'] = row['content']
       @messages << r
       statement.close
     end
     @messages.reverse!
 
-    statement = db.prepare('SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?')
-    cnt = statement.execute(@channel_id).first['cnt'].to_f
-    statement.close
+    cnt = count_messages(@channel_id)
     @max_page = cnt == 0 ? 1 :(cnt / n).ceil
 
     return 400 if @page > @max_page
@@ -434,6 +427,14 @@ SQL
   def import_message_to_redis
     messages = db.query('SELECT id, channel_id, user_id, content, created_at FROM message ORDER BY id ASC')
     messages.each { |msg| redis_add_message(msg['channel_id'], msg['user_id'], msg['content'], created_at: msg['created_at']) }
+  end
+
+  def count_messages(channel_id, message_id: nil)
+    if message_id.nil?
+      redis.zcard(message_entity_key(channel_id))
+    else
+      redis.zcount(message_entity_key(channel_id), "(#{message_id}", "+inf")
+    end
   end
 
   def save_haveread(user_id, channel_id, message_id)
