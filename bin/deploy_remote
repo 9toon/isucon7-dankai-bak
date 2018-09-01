@@ -9,6 +9,6 @@ PATH=/home/ubuntu/local/bin:$PATH
 cd /home/isucon/src
 git fetch origin
 git reset --hard origin/$BRANCH
-bundle check || bundle install
+/home/isucon/local/ruby/bin/bundle check || /home/isucon/local/ruby/bin/bundle install
 ln -sf /home/isucon/src/ruby /home/isucon/isubata/webapp/ruby
 sudo systemctl restart isubata.ruby.service
