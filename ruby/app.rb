@@ -37,7 +37,6 @@ class App < Sinatra::Base
 
   get '/initialize' do
     db.query("DELETE FROM user WHERE id > 1000")
-    db.query("DELETE FROM image WHERE id > 1001")
     db.query("DELETE FROM channel WHERE id > 10")
     db.query("DELETE FROM message WHERE id > 10000")
     db.query("DELETE FROM haveread")
@@ -392,19 +391,6 @@ SQL
     [channels, description]
   end
 
-  def ext2mime(ext)
-    if ['.jpg', '.jpeg'].include?(ext)
-      return 'image/jpeg'
-    end
-    if ext == '.png'
-      return 'image/png'
-    end
-    if ext == '.gif'
-      return 'image/gif'
-    end
-    ''
-  end
-
   def save_haveread(user_id, channel_id, message_id)
     redis.set(haveread_key(user_id, channel_id), message_id)
   end
@@ -415,11 +401,6 @@ SQL
 
   def haveread_key(user_id, channel_id)
     "haveread:uid:#{user_id}:cid:#{channel_id}"
-  end
-
-  def export_icons_to_public_dir
-    images = db.query("SELECT name, data FROM image").to_a
-    images.each { |img| write_icon(img['name'], img['data']) }
   end
 
   def write_icon(name, data)
