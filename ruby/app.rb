@@ -6,6 +6,7 @@ class App < Sinatra::Base
   configure do
     set :session_secret, 'tonymoris'
     set :public_folder, File.expand_path('../../public', __FILE__)
+    set :icons_folder, "#{public_folder}/icons"
     set :avatar_max_size, 1 * 1024 * 1024
 
     enable :sessions
@@ -39,6 +40,9 @@ class App < Sinatra::Base
     db.query("DELETE FROM channel WHERE id > 10")
     db.query("DELETE FROM message WHERE id > 10000")
     db.query("DELETE FROM haveread")
+
+    export_icons_to_public_dir
+
     204
   end
 
@@ -402,5 +406,14 @@ class App < Sinatra::Base
       return 'image/gif'
     end
     ''
+  end
+
+  def export_icons_to_public_dir
+    images = db.query("SELECT name, data FROM image").to_a
+    images.each { |img| write_icon(img['name'], img['data']) }
+  end
+
+  def write_icon(name, data)
+    File.write("#{settings.icons_folder}/#{name}", data)
   end
 end
