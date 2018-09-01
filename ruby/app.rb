@@ -148,7 +148,7 @@ SQL
     end
     response.reverse!
 
-    max_message_id = rows.empty? ? 0 : rows.map { |row| row['id'] }.max
+    max_message_id = rows.empty? ? 0 : rows.last['id']
     statement = db.prepare([
       'INSERT INTO haveread (user_id, channel_id, message_id, updated_at, created_at) ',
       'VALUES (?, ?, ?, NOW(), NOW()) ',
