@@ -1,6 +1,7 @@
 require 'digest/sha1'
 require 'mysql2'
 require 'sinatra/base'
+require "redis"
 
 class App < Sinatra::Base
   configure do
@@ -40,6 +41,8 @@ class App < Sinatra::Base
     db.query("DELETE FROM channel WHERE id > 10")
     db.query("DELETE FROM message WHERE id > 10000")
     db.query("DELETE FROM haveread")
+
+    redis.flushdb
 
     #export_icons_to_public_dir
 
@@ -348,6 +351,15 @@ SQL
     )
     @db_client.query('SET SESSION sql_mode=\'TRADITIONAL,NO_AUTO_VALUE_ON_ZERO,ONLY_FULL_GROUP_BY\'')
     @db_client
+  end
+
+  def redis
+    return @redis if defined?(@redis)
+
+    @redis = Redis.new(
+      url: ENV.fetch('ISUBATA_REDIS_URL') { 'redis://localhost:6379/10' },
+    )
+    @redis
   end
 
   def db_get_user(user_id)
