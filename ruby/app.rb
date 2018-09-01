@@ -43,6 +43,7 @@ class App < Sinatra::Base
     db.query("DELETE FROM haveread")
 
     redis.flushdb
+    redis.set(message_id_key, 0)
 
     #export_icons_to_public_dir
 
@@ -113,7 +114,7 @@ class App < Sinatra::Base
     if user_id.nil? || message.nil? || channel_id.nil? || user.nil?
       return 403
     end
-    db_add_message(channel_id.to_i, user_id, message)
+    redis_add_message(channel_id.to_i, user_id, message)
     204
   end
 
@@ -390,6 +391,42 @@ SQL
       end
     end
     [channels, description]
+  end
+
+  def redis_add_message(channel_id, user_id, content, created_at: Time.now)
+    message_id = get_message_id
+
+    store_message_entity(channel_id, message_id)
+    store_message_content(message_id, channel_id, user_id, content, created_at)
+  end
+
+  def store_message_entity(channel_id, message_id)
+    entity_key = message_entity_key(channel_id)
+    content_key = message_content_key(channel_id, message_id)
+
+    redis.zadd(entity_key, message_id, content_key)
+  end
+
+  def store_message_content(message_id, channel_id, user_id, content, created_at)
+    content_key = message_content_key(channel_id, message_id)
+
+    redis.set(content_key, { user_id: user_id, content: content, created_at: created_at }.to_json)
+  end
+
+  def get_message_id
+    redis.incr(message_id_key)
+  end
+
+  def message_entity_key(channel_id)
+    "message:entity:cid:#{channel_id}"
+  end
+
+  def message_content_key(channel_id, message_id)
+    "message:content:cid:#{channel_id}:mid:#{message_id}"
+  end
+
+  def message_id_key
+    "message:id"
   end
 
   def save_haveread(user_id, channel_id, message_id)
