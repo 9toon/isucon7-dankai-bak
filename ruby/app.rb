@@ -319,6 +319,7 @@ SQL
 
     if !avatar_name.nil? && !avatar_data.nil?
       write_icon(avatar_name, avatar_data)
+
       statement = db.prepare('UPDATE user SET avatar_icon = ? WHERE id = ?')
       statement.execute(avatar_name, user['id'])
       statement.close
@@ -364,9 +365,12 @@ SQL
     messages
   end
 
+  def random_string(n)
+    Array.new(20).map { (('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a).sample }.join
+  end
 
   def register(user, password)
-    salt = 'a'
+    salt = random_string(20)
     pass_digest = Digest::SHA1.hexdigest(salt + password)
     statement = db.prepare('INSERT INTO user (name, salt, password, display_name, avatar_icon, created_at) VALUES (?, ?, ?, ?, ?, NOW())')
     statement.execute(user, salt, pass_digest, user, 'default.png')
@@ -376,7 +380,7 @@ SQL
   end
 
   def get_channel_list_info(focus_channel_id = nil)
-    channels = db.query('SELECT id,name, description FROM channel ORDER BY id').to_a
+    channels = db.query('SELECT * FROM channel ORDER BY id').to_a
     description = ''
     channels.each do |channel|
       if channel['id'] == focus_channel_id
