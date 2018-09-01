@@ -1,6 +1,7 @@
 service 'mysql'
 
 %w(
+  /etc/mysql/my.cnf
   /etc/mysql/mysql.cnf
   /etc/mysql/conf.d/mysql.cnf
   /etc/mysql/conf.d/mysqldump.cnf
