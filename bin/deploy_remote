@@ -4,7 +4,7 @@ set -ex
 
 BRANCH=${1:-master}
 
-PATH=/home/ubuntu/local/bin:$PATH
+PATH=/home/isucon/local/ruby/bin:$PATH
 
 cd /home/isucon/src
 git fetch origin
