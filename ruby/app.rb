@@ -405,7 +405,7 @@ SQL
   def store_message_content(message_id, channel_id, user_id, content, created_at)
     content_key = message_content_key(channel_id, message_id)
 
-    redis.set(content_key, { user_id: user_id, content: content, created_at: created_at }.to_json)
+    redis.set(content_key, { id: message_id, user_id: user_id, content: content, created_at: created_at }.to_json)
   end
 
   def get_message_id
