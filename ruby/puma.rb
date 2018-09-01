@@ -109,7 +109,7 @@ bind 'unix:///home/isucon/puma.sock'
 #
 # The default is "0".
 
-workers 2
+# workers 2
 
 # Code to run immediately before the master starts workers.
 #
