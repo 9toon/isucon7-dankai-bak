@@ -217,7 +217,7 @@ class App < Sinatra::Base
     end
     @messages.reverse!
 
-    cnt = count_messages(@channel_id)
+    cnt = count_messages(@channel_id).to_f
     @max_page = cnt == 0 ? 1 :(cnt / n).ceil
 
     return 400 if @page > @max_page
