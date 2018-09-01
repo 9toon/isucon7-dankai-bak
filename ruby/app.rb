@@ -128,27 +128,24 @@ class App < Sinatra::Base
 
     channel_id = params[:channel_id].to_i
     last_message_id = params[:last_message_id].to_i
-    sql = <<-"SQL"
-SELECT 
-  message.id,message.user_id,message.content,message.created_at, user.name, user.display_name, user.avatar_icon 
-FROM 
-  message INNER JOIN user on message.user_id = user.id 
-WHERE 
-  message.id > ? AND channel_id = ? 
-ORDER BY 
-  message.id DESC 
-LIMIT 
-  100
-SQL
-    statement = db.prepare(sql)
-    rows = statement.execute(last_message_id, channel_id).to_a
+    rows = fetch_messages(channel_id, message_id: last_message_id, per_page: 100)
+
+    user_ids = rows.map { |r| r['user_id'] }
+    u_rows = db.query("SELECT user.id, user.name, user.display_name, user.avatar_icon FROM user WHERE user.id IN (#{user_ids.join(', ')})").to_a
+    users = u_rows.each.with_object({}) do |user, hsh|
+      hsh[user['id']] = {
+        name: user['name'],
+        display_name: user['display_name'],
+        avatar_icon: user['avatar_icon'],
+      }
+    end
 
     response = []
     rows.each do |row|
       r = {}
       r['id'] = row['id']
-      r['user'] = {name: row['name'], display_name: row['display_name'], avatar_icon: row['avatar_icon']}
-      r['date'] = row['created_at'].strftime("%Y/%m/%d %H:%M:%S")
+      r['user'] = users[row['user_id']]
+      r['date'] = Time.parse(row['created_at']).strftime("%Y/%m/%d %H:%M:%S")
       r['content'] = row['content']
       response << r
     end
@@ -435,6 +432,18 @@ SQL
     else
       redis.zcount(message_entity_key(channel_id), "(#{message_id}", "+inf")
     end
+  end
+
+  def fetch_messages(channel_id, message_id: nil, per_page: nil, page: 1)
+    min = message_id ? message_id : 0
+    option = per_page ? { limit: [[0, ((page.to_i - 1) * per_page) - 1].max, per_page] } : {}
+
+    entity_key = message_entity_key(channel_id)
+    content_keys = redis.zrevrangebyscore(entity_key, '+inf', "(#{min}", option)
+
+    return [] if content_keys.empty?
+
+    Array(redis.mget(*content_keys)).map { |str| JSON.parse(str) }
   end
 
   def save_haveread(user_id, channel_id, message_id)
