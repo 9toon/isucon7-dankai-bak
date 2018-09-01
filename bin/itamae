@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -ex
+
+bundle exec itamae ssh --user isucon --host 118.27.33.39 itamae/cookbooks/$1/default.rb
