@@ -41,7 +41,7 @@ class App < Sinatra::Base
     db.query("DELETE FROM message WHERE id > 10000")
     db.query("DELETE FROM haveread")
 
-    export_icons_to_public_dir
+    #export_icons_to_public_dir
 
     204
   end
