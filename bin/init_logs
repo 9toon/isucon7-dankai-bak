@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -ex
+
+ssh isucon@118.27.33.39 sudo truncate /var/log/nginx/access.log --size 0
+ssh isucon@118.27.33.39 sudo truncate /var/log/mysql/mysql-slow.log --size 0
