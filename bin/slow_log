@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -ex
+
+ssh isucon@118.27.33.39 sudo mysqldumpslow -s t /var/log/mysql/mysql-slow.log

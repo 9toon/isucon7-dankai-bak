@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -ex
+
+mkdir -p tmp
+
+scp -q isucon@118.27.33.39:/var/log/nginx/access.log tmp
+bundle exec ruby bin/summarize_access_log.rb
