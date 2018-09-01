@@ -17,3 +17,9 @@ bin/benchmark
 bin/access_log # nginx log
 bin/slow_log # mysql slow log
 ```
+
+## Deploy
+
+```bash
+bin/deploy
+```
