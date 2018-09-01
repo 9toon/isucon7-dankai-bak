@@ -166,7 +166,7 @@ SQL
       return 403
     end
 
-    sleep 1.0
+    sleep 0.5
 
     rows = db.query('SELECT id FROM channel').to_a
     channel_ids = rows.map { |row| row['id'] }
