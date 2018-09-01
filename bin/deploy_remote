@@ -4,7 +4,7 @@ set -ex
 
 BRANCH=${1:-master}
 
-PATH=/home/ubuntu/local/bin:$PATH
+PATH=/home/isucon/local/ruby/bin:$PATH
 
 cd /home/isucon/src
 git fetch origin
@@ -12,6 +12,6 @@ git reset --hard origin/$BRANCH
 ln -sf /home/isucon/src/ruby /home/isucon/isubata/webapp
 
 cd /home/isucon/isubata/webapp/ruby
-bundle check || bundle install
+/home/isucon/local/ruby/bin/bundle check || /home/isucon/local/ruby/bin/bundle install
 
 sudo systemctl restart isubata.ruby.service
