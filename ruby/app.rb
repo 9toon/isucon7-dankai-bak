@@ -370,7 +370,7 @@ class App < Sinatra::Base
   end
 
   def get_channel_list_info(focus_channel_id = nil)
-    channels = db.query('SELECT id, name, description FROM channel ORDER BY id').to_a
+    @channels ||= db.query('SELECT id, name, description FROM channel ORDER BY id').to_a
 
     if focus_channel_id
       statement = db.prepare("SELECT description FROM channel WHERE id = ?")
@@ -380,7 +380,7 @@ class App < Sinatra::Base
       description = ''
     end
 
-    [channels, description]
+    [@channels, description]
   end
 
   def redis_add_message(channel_id, user_id, content, created_at: Time.now)
