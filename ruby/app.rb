@@ -150,7 +150,7 @@ class App < Sinatra::Base
       r = {}
       r['id'] = row[:id]
       r['user'] = users[row[:user_id]]
-      r['date'] = Time.parse(row[:created_at]).strftime("%Y/%m/%d %H:%M:%S")
+      r['date'] = row[:created_at].strftime("%Y/%m/%d %H:%M:%S")
       r['content'] = row[:content]
       response << r
     end
@@ -215,7 +215,7 @@ class App < Sinatra::Base
       r['id'] = row[:id]
       statement = db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id = ?')
       r['user'] = statement.execute(row[:user_id]).first
-      r['date'] = Time.parse(row[:created_at]).strftime("%Y/%m/%d %H:%M:%S")
+      r['date'] = row[:created_at].strftime("%Y/%m/%d %H:%M:%S")
       r['content'] = row[:content]
       @messages << r
       statement.close
