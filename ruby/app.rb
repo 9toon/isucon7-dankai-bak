@@ -130,14 +130,14 @@ class App < Sinatra::Base
     last_message_id = params[:last_message_id].to_i
     rows = fetch_messages(channel_id, message_id: last_message_id, per_page: 100)
 
-    user_ids = rows.map { |r| r['user_id'].to_i }
+    user_ids = rows.map { |r| r['user_id'] }
     if !user_ids.empty?
       u_rows = db.query("SELECT user.id, user.name, user.display_name, user.avatar_icon FROM user WHERE user.id IN (#{user_ids.join(', ')})").to_a
     else
       u_rows = []
     end
     users = u_rows.each.with_object({}) do |user, hsh|
-      hsh[user['id'].to_i] = {
+      hsh[user['id']] = {
         name: user['name'],
         display_name: user['display_name'],
         avatar_icon: user['avatar_icon'],
@@ -147,8 +147,8 @@ class App < Sinatra::Base
     response = []
     rows.each do |row|
       r = {}
-      r['id'] = row['id'].to_i
-      r['user'] = users[row['user_id'].to_i]
+      r['id'] = row['id']
+      r['user'] = users[row['user_id']]
       r['date'] = Time.parse(row['created_at']).strftime("%Y/%m/%d %H:%M:%S")
       r['content'] = row['content']
       response << r
@@ -400,8 +400,7 @@ class App < Sinatra::Base
   def store_message_content(message_id, channel_id, user_id, content, created_at)
     content_key = message_content_key(channel_id, message_id)
 
-    data = { id: message_id, user_id: user_id, content: content, created_at: created_at }
-    redis.hmset(content_key, *data.to_a)
+    redis.set(content_key, { id: message_id, user_id: user_id, content: content, created_at: created_at }.to_json)
   end
 
   def get_message_id
@@ -442,7 +441,7 @@ class App < Sinatra::Base
 
     return [] if content_keys.empty?
 
-    content_keys.map { |content_key| redis.hgetall(content_key) }
+    Array(redis.mget(*content_keys)).map { |str| JSON.parse(str) }
   end
 
   def save_haveread(user_id, channel_id, message_id)
