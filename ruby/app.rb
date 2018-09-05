@@ -131,7 +131,7 @@ class App < Sinatra::Base
     last_message_id = params[:last_message_id].to_i
     rows = fetch_messages(channel_id, message_id: last_message_id, per_page: 100)
 
-    user_ids = rows.map { |r| r['user_id'] }
+    user_ids = rows.map { |r| r[:user_id] }
     if !user_ids.empty?
       u_rows = db.query("SELECT user.id, user.name, user.display_name, user.avatar_icon FROM user WHERE user.id IN (#{user_ids.join(', ')})").to_a
     else
@@ -148,15 +148,15 @@ class App < Sinatra::Base
     response = []
     rows.each do |row|
       r = {}
-      r['id'] = row['id']
-      r['user'] = users[row['user_id']]
-      r['date'] = Time.parse(row['created_at']).strftime("%Y/%m/%d %H:%M:%S")
-      r['content'] = row['content']
+      r['id'] = row[:id]
+      r['user'] = users[row[:user_id]]
+      r['date'] = Time.parse(row[:created_at]).strftime("%Y/%m/%d %H:%M:%S")
+      r['content'] = row[:content]
       response << r
     end
     response.reverse!
 
-    max_message_id = rows.empty? ? 0 : rows.first['id']
+    max_message_id = rows.empty? ? 0 : rows.first[:id]
     save_haveread(user_id, channel_id, max_message_id)
 
     content_type :json
@@ -212,11 +212,11 @@ class App < Sinatra::Base
     @messages = []
     rows.each do |row|
       r = {}
-      r['id'] = row['id']
+      r['id'] = row[:id]
       statement = db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id = ?')
-      r['user'] = statement.execute(row['user_id']).first
-      r['date'] = Time.parse(row['created_at']).strftime("%Y/%m/%d %H:%M:%S")
-      r['content'] = row['content']
+      r['user'] = statement.execute(row[:user_id]).first
+      r['date'] = Time.parse(row[:created_at]).strftime("%Y/%m/%d %H:%M:%S")
+      r['content'] = row[:content]
       @messages << r
       statement.close
     end
