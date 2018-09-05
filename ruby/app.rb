@@ -3,6 +3,7 @@ require 'digest/sha1'
 require 'mysql2'
 require 'sinatra/base'
 require 'redis'
+require 'oj'
 
 class App < Sinatra::Base
   configure do
@@ -159,7 +160,7 @@ class App < Sinatra::Base
     save_haveread(user_id, channel_id, max_message_id)
 
     content_type :json
-    response.to_json
+    Oj.dump(response)
   end
 
   get '/fetch' do
@@ -187,7 +188,7 @@ class App < Sinatra::Base
     end
 
     content_type :json
-    res.to_json
+    Oj.dump(res)
   end
 
   get '/history/:channel_id' do
@@ -400,7 +401,8 @@ class App < Sinatra::Base
   def store_message_content(message_id, channel_id, user_id, content, created_at)
     content_key = message_content_key(channel_id, message_id)
 
-    redis.set(content_key, { id: message_id, user_id: user_id, content: content, created_at: created_at }.to_json)
+    data = { id: message_id, user_id: user_id, content: content, created_at: created_at }
+    redis.set(content_key, Oj.dump(data))
   end
 
   def get_message_id
@@ -441,7 +443,7 @@ class App < Sinatra::Base
 
     return [] if content_keys.empty?
 
-    Array(redis.mget(*content_keys)).map { |str| JSON.parse(str) }
+    Array(redis.mget(*content_keys)).map { |str| Oj.load(str) }
   end
 
   def save_haveread(user_id, channel_id, message_id)
