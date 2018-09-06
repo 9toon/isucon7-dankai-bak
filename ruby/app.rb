@@ -148,10 +148,10 @@ class App < Sinatra::Base
     response = []
     rows.each do |row|
       r = {}
-      r['id'] = row[:id]
-      r['user'] = users[row[:user_id]]
-      r['date'] = row[:created_at].strftime("%Y/%m/%d %H:%M:%S")
-      r['content'] = row[:content]
+      r[:id] = row[:id]
+      r[:user] = users[row[:user_id]]
+      r[:date] = row[:created_at].strftime("%Y/%m/%d %H:%M:%S")
+      r[:content] = row[:content]
       response << r
     end
     response.reverse!
@@ -160,7 +160,7 @@ class App < Sinatra::Base
     save_haveread(user_id, channel_id, max_message_id)
 
     content_type :json
-    Oj.dump(response)
+    Oj.dump(response, mode: :json)
   end
 
   get '/fetch' do
@@ -188,7 +188,7 @@ class App < Sinatra::Base
     end
 
     content_type :json
-    Oj.dump(res)
+    Oj.dump(res, mode: :json)
   end
 
   get '/history/:channel_id' do
@@ -402,7 +402,7 @@ class App < Sinatra::Base
     content_key = message_content_key(channel_id, message_id)
 
     data = { id: message_id, user_id: user_id, content: content, created_at: created_at }
-    redis.set(content_key, Oj.dump(data))
+    redis.set(content_key, Oj.dump(data, mode: :json))
   end
 
   def get_message_id
