@@ -3,6 +3,7 @@ require 'digest/sha1'
 require 'mysql2'
 require 'sinatra/base'
 require 'redis'
+require 'hiredis'
 require 'oj'
 
 class App < Sinatra::Base
@@ -349,6 +350,7 @@ class App < Sinatra::Base
 
     @redis = Redis.new(
       url: ENV.fetch('ISUBATA_REDIS_URL') { 'redis://localhost:6379/10' },
+      driver: :hiredis,
     )
     @redis
   end
