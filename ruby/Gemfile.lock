@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     backports (3.9.1)
+    hiredis (0.6.1)
     multi_json (1.12.2)
     mustermann (1.0.1)
     mysql2 (0.4.9)
@@ -30,11 +31,12 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  hiredis (~> 0.6.0)
   mysql2
   newrelic_rpm
   oj
   puma
-  redis
+  redis (>= 3.2.0)
   sinatra
   sinatra-contrib
 

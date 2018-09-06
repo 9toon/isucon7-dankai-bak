@@ -4,6 +4,7 @@ gem 'mysql2'
 gem 'puma'
 gem 'sinatra'
 gem 'sinatra-contrib'
-gem 'redis'
+gem "hiredis", "~> 0.6.0"
+gem "redis", ">= 3.2.0"
 gem 'newrelic_rpm'
 gem 'oj'
