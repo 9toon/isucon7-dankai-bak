@@ -150,7 +150,7 @@ class App < Sinatra::Base
       r = {}
       r[:id] = row[:id]
       r[:user] = users[row[:user_id]]
-      r[:date] = row[:created_at].strftime("%Y/%m/%d %H:%M:%S")
+      r[:date] = row[:created_at]
       r[:content] = row[:content]
       response << r
     end
@@ -215,7 +215,7 @@ class App < Sinatra::Base
       r['id'] = row[:id]
       statement = db.prepare('SELECT name, display_name, avatar_icon FROM user WHERE id = ?')
       r['user'] = statement.execute(row[:user_id]).first
-      r['date'] = row[:created_at].strftime("%Y/%m/%d %H:%M:%S")
+      r['date'] = row[:created_at]
       r['content'] = row[:content]
       @messages << r
       statement.close
@@ -401,7 +401,7 @@ class App < Sinatra::Base
   def store_message_content(message_id, channel_id, user_id, content, created_at)
     content_key = message_content_key(channel_id, message_id)
 
-    data = { id: message_id, user_id: user_id, content: content, created_at: created_at }
+    data = { id: message_id, user_id: user_id, content: content, created_at: created_at.strftime("%Y/%m/%d %H:%M:%S") }
     redis.set(content_key, Oj.dump(data))
   end
 
