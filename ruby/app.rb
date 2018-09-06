@@ -402,7 +402,7 @@ class App < Sinatra::Base
     content_key = message_content_key(channel_id, message_id)
 
     data = { id: message_id, user_id: user_id, content: content, created_at: created_at }
-    redis.set(content_key, Oj.dump(data, mode: :json))
+    redis.set(content_key, Oj.dump(data))
   end
 
   def get_message_id
