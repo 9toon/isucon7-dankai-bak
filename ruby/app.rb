@@ -313,17 +313,25 @@ class App < Sinatra::Base
       end
     end
 
-    if !avatar_name.nil? && !avatar_data.nil?
+    is_avater_given = !avatar_name.nil? && !avatar_data.nil?
+    is_display_name_given = !display_name.nil? || !display_name.empty?
+
+    if is_avater_given && is_display_name_given
+      write_icon(avatar_name, avatar_data)
+      statement = db.prepare('UPDATE user SET avatar_icon = ?, display_name = ? WHERE id = ?')
+      statement.execute(avatar_name, display_name, user['id'])
+      statement.close
+    elsif is_avater_given
       write_icon(avatar_name, avatar_data)
       statement = db.prepare('UPDATE user SET avatar_icon = ? WHERE id = ?')
       statement.execute(avatar_name, user['id'])
       statement.close
-    end
-
-    if !display_name.nil? || !display_name.empty?
+    elsif is_display_name_given
       statement = db.prepare('UPDATE user SET display_name = ? WHERE id = ?')
       statement.execute(display_name, user['id'])
       statement.close
+    else
+      # do nothing
     end
 
     redirect '/', 303
